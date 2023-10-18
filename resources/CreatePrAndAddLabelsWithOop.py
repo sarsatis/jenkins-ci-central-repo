@@ -31,8 +31,7 @@ class CreatePRAndAddLabel:
     
     application_manifest_repo = "sarsatis/helm-charts"
     git_commit_prefix = "feat"
-    file_path = f"manifests/{app_name}/values-sit.yaml"
-    file_path1 = f"manifests/priyankapractice/values-sit.yaml"
+    file_path = f"manifests/{app_name}/sit/immutable/values.yaml"
     errored_messages = []
     repo = ""
     print(branch_name)
