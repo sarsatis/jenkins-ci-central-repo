@@ -58,6 +58,9 @@ def call(){
                         writeFile file: "requirements.txt", text: requirementsTxt
                         container(name: 'python') {
                             sh '''
+                                // In case if you have internal repository which needs certificates it needs to be set like this
+                                // set -e
+                                // export REQUESTS_CA_BUNDLE="/etc/ssl/certs/ca-certificates.crt"
                                 pip3 install -r requirements.txt
                                 python3 CreatePrAndAddLabel.py
                             '''
