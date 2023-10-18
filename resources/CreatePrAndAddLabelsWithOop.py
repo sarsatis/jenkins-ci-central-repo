@@ -16,7 +16,7 @@ class CreatePRAndAddLabel:
 
     # API_TOKEN=""
     # app_name="priyankapractice"
-    branch_name="JIRA-1236"
+    branch_name=f"JIRA-1236-{app_name}"
     # buildahImageTag="ocp-29"
 
     authorization = f'token {API_TOKEN}'
