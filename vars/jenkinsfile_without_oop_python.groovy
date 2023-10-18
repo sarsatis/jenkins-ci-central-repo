@@ -8,7 +8,7 @@ def call(){
         agent {
             kubernetes {
                 inheritFrom 'jenkins-${UUID.randomUUID().toString()}'
-                yamlFile "$podTemplate"
+                yamlFile = readFile('resources/pod-template.yaml')
             }
         }
         environment {
