@@ -49,7 +49,7 @@ class CreatePRAndAddLabel:
         new_file_content = getattr(self, "update_image_tag")(file_content=file_content_decoded, variable_key = "tag")
         print(f"print new image value \n {new_file_content}")
 
-        self.check_if_branch_exists(repo)
+        self.check_if_branch_exists(repo,pr_created)
 
         self.commit_to_branch(repo, file_content, new_file_content,self.file_path)
 
@@ -64,8 +64,8 @@ class CreatePRAndAddLabel:
         #     print(f" commit id {repo.get_branch(self.branch_name).commit}")
         #     print(f" commit sha {repo.get_branch(self.branch_name).commit.sha}")
         #     self.commit_to_branch(repo, file_content, new_file_content,self.file_path1)
-
-
+        
+        
     def fetch_repository(self):
         try:
             repo = self.github_client.get_repo(self.application_manifest_repo)
@@ -75,62 +75,8 @@ class CreatePRAndAddLabel:
             self.errored_messages.append(error)
             print(error)
         return repo
-
-    def create_pr(self, repo, pr_created):
-        title = f"{self.git_commit_prefix}: {self.branch_name} - Update image tag for application {self.app_name}"
+    
         
-        if not pr_created:
-            try:
-                print(f"Inside PR")
-                pr = repo.create_pull(head=self.branch_name,base=repo.default_branch,title=title,body=title)
-                print(f"PR Raised")
-                self.add_labels(repo, pr)
-            except (GithubException, socket.timeout, urllib3.exceptions.ReadTimeoutError, ReadTimeout) as e:
-                print(f"PR creation timeout - ({repo.name}) - sleeping 60s")
-                print(f"Details: {e}")
-
-
-    def add_labels(self, repo, pr):
-        labels = ["canary","env: sit","releaseName: test",f"appname: {self.app_name}"]
-        issue = repo.get_issue(number=pr.number)
-        issue.set_labels(*labels)
-        print(f"Added Labels to PR")
-
-
-    def commit_to_branch(self, repo, file_content, new_file_content,file_path):
-        git_method = "update_file"
-        git_method_args = {
-            "content":new_file_content,
-            "path": file_path,
-            "branch":self.branch_name,
-            "message":f"{self.git_commit_prefix}: {self.branch_name} - Upadting image tag for application {self.app_name}",
-            "sha": file_content.sha
-        }
-        
-        getattr(repo, git_method)(**git_method_args)
-        print(f"Updated content to branch")
-
-
-    def check_if_branch_exists(self, repo):
-        branch_list = []
-        for branch in list(repo.get_branches()):
-            branch_list = branch_list[:len(branch_list)] + [branch.name]
-            
-        print(f"branch list {branch_list}")
-
-        if self.branch_name not in branch_list:
-            try:
-                print(f"creating new branch")
-                repo_branch = repo.get_branch(repo.default_branch)
-                repo.create_git_ref(ref=f'refs/heads/{self.branch_name}', sha=repo_branch.commit.sha)
-                print(f"branch created")
-            except UnknownObjectException as e:
-                if "Not Found" in e.data['message']:
-                    err = f"[SKIPPING] {repo.name} - branch unable to be created - most likely due to permissions or empty repo"
-                    print(err)
-                    self.errored_messages.append(err)
-
-
     def check_if_pr_exists_and_fetch_file_content(self, repo, file_path):
         if repo.archived:
             print(f"[SKIPPING] Archived repo - {self.application_manifest_repo}")
@@ -153,7 +99,7 @@ class CreatePRAndAddLabel:
         print(f"print old image value \n {file_content_decoded}")
         return file_content,pr_created,file_content_decoded
 
-            
+
     @staticmethod
     def update_image_tag(**kwargs):
         content = kwargs['file_content']
@@ -173,6 +119,70 @@ class CreatePRAndAddLabel:
         content = "\n".join(content_lines)
         content = "\n".join(list(content.splitlines()))
         return content
+    
+    
+    def check_if_branch_exists(self, repo,pr_created):
+        branch_list = []
+        for branch in list(repo.get_branches()):
+            branch_list = branch_list[:len(branch_list)] + [branch.name]
+            
+        print(f"branch list {branch_list}")
+        
+        if not pr_created:
+            if self.branch_name in branch_list:
+                print(f"found a branch with no pr raised")
+                repo.get_git_ref(f"heads/{self.branch_name}").delete()
+                print(f"branch name which is removed {self.branch_name}")
+                branch_list.remove(self.branch_name)
+                print(f"branch list after removing a branch with no PR {branch_list}")
+            
+
+        if self.branch_name not in branch_list:
+            try:
+                print(f"creating new branch")
+                repo_branch = repo.get_branch(repo.default_branch)
+                repo.create_git_ref(ref=f'refs/heads/{self.branch_name}', sha=repo_branch.commit.sha)
+                print(f"branch created")
+            except UnknownObjectException as e:
+                if "Not Found" in e.data['message']:
+                    err = f"[SKIPPING] {repo.name} - branch unable to be created - most likely due to permissions or empty repo"
+                    print(err)
+                    self.errored_messages.append(err)
+                    
+    
+    def commit_to_branch(self, repo, file_content, new_file_content,file_path):
+        git_method = "update_file"
+        git_method_args = {
+            "content":new_file_content,
+            "path": file_path,
+            "branch":self.branch_name,
+            "message":f"{self.git_commit_prefix}: {self.branch_name} - Upadting image tag for application {self.app_name}",
+            "sha": file_content.sha
+        }
+        
+        getattr(repo, git_method)(**git_method_args)
+        print(f"Updated content to branch")
+        
+
+    def create_pr(self, repo, pr_created):
+        title = f"{self.git_commit_prefix}: {self.branch_name} - Update image tag for application {self.app_name}"
+        
+        if not pr_created:
+            try:
+                print(f"Inside PR")
+                pr = repo.create_pull(head=self.branch_name,base=repo.default_branch,title=title,body=title)
+                print(f"PR Raised")
+                self.add_labels(repo, pr)
+            except (GithubException, socket.timeout, urllib3.exceptions.ReadTimeoutError, ReadTimeout) as e:
+                print(f"PR creation timeout - ({repo.name}) - sleeping 60s")
+                print(f"Details: {e}")
+
+
+    def add_labels(self, repo, pr):
+        labels = ["canary","env: sit","releaseName: test",f"appname: {self.app_name}"]
+        issue = repo.get_issue(number=pr.number)
+        issue.set_labels(*labels)
+        print(f"Added Labels to PR")
 
 
 if __name__ == "__main__":
