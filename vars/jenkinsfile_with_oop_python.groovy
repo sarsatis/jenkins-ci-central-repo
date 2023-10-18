@@ -57,10 +57,11 @@ def call(){
                         writeFile file: "CreatePrAndAddLabel.py", text: createPrAndAddLabelsScript
                         writeFile file: "requirements.txt", text: requirementsTxt
                         container(name: 'python') {
+                            // In case if you have internal repository which needs certificates it needs to be set like this
+                            // add the below set command in sh block
+                            // set -e
+                            // export REQUESTS_CA_BUNDLE="/etc/ssl/certs/ca-certificates.crt"
                             sh '''
-                                // In case if you have internal repository which needs certificates it needs to be set like this
-                                // set -e
-                                // export REQUESTS_CA_BUNDLE="/etc/ssl/certs/ca-certificates.crt"
                                 pip3 install -r requirements.txt
                                 python3 CreatePrAndAddLabel.py
                             '''
