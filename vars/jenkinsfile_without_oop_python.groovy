@@ -1,8 +1,6 @@
 def call(){
 
-    @Library('my-library') _
-
-    def podTemplate = myLibrary('resources/pod-template.yaml')
+    def podTemplate = libraryResource('pod-template.yaml').read()
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
     def requirementsTxt = libraryResource "requirements.txt"
 
