@@ -25,7 +25,6 @@ class CreatePRAndAddLabel:
 
     num_retries = 10
     backoff_factor = 15
-    retry_data = urllib3.util.retry.Retry(total=num_retries,read=num_retries,connect=num_retries,backoff_factor=backoff_factor,)
 
     github_client = Github(API_TOKEN)
     
