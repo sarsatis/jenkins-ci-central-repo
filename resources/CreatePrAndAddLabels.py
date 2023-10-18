@@ -22,7 +22,7 @@ data = {
     "base": "main",
     "body": "Updated deployment specification with a new image version.",
     "head": branch_name,
-    "title": "Updated Priyanka learnings Image"
+    "title": f"Updated {name} application image tag"
 }
 
 response = requests.post('https://api.github.com/repos/sarsatis/helm-charts/pulls', headers=headers, data=json.dumps(data))

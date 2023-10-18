@@ -14,7 +14,7 @@ def call(){
         }
         environment {
             NAME = "${env.NAME}"
-            VERSION = "${env.BUILD_ID}"
+            VERSION = "${env.GIT_COMMIT}-${env.BUILD_ID}"
             IMAGE_REPO = "sarthaksatish"
             GITHUB_TOKEN = credentials('githubpat')
         }
