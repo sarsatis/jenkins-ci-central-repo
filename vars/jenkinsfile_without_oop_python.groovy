@@ -3,7 +3,7 @@ def call(){
     def podTemplate = libraryResource('podTemplate.yaml')
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabelsWithOutOop.py"
     def requirementsTxt = libraryResource "RequirementsWithOutOop.txt"
-    def dockerfile = libraryResource "DockerfileJava"
+    def dockerfile = libraryResource "DockerfileJavaGradle"
     def jobNameParts = env.JOB_NAME.split('/')
 
     pipeline {
