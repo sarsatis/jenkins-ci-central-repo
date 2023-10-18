@@ -92,7 +92,7 @@ class CreatePRAndAddLabel:
 
 
     def add_labels(self, repo, pr):
-        labels = [self.app_name,"dev"]
+        labels = ["canary","env: sit","releaseName: test",f"appname: self.app_name"]
         issue = repo.get_issue(number=pr.number)
         issue.set_labels(*labels)
         print(f"Added Labels to PR")
