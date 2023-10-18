@@ -28,28 +28,28 @@ def call(){
                 }
             }
             
-            // stage('Gradle build') {
-            //     steps {
-            //         script {
-            //             container(name: 'gradle') {
-            //                 sh "gradle clean build -x test"
-            //             }
-            //         }
-            //     }
-            // }
+            stage('Gradle build') {
+                steps {
+                    script {
+                        container(name: 'gradle') {
+                            sh "gradle clean build -x test"
+                        }
+                    }
+                }
+            }
 
-            // stage('Build Image') {
-            //     steps {
-            //         script {
-            //             writeFile file: "Dockerfile", text: dockerfile
-            //             container('kaniko') {
-            //                 sh '''
-            //                 /kaniko/executor --build-arg NAME=${NAME} --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
-            //                 '''
-            //             }
-            //         }
-            //     }
-            // }
+            stage('Build Image') {
+                steps {
+                    script {
+                        writeFile file: "Dockerfile", text: dockerfile
+                        container('kaniko') {
+                            sh '''
+                            /kaniko/executor --build-arg NAME=${NAME} --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
+                            '''
+                        }
+                    }
+                }
+            }
 
             stage('Raise PR') {
                 steps {
