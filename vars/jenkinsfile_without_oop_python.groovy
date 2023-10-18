@@ -1,7 +1,6 @@
 def call(){
 
     def podTemplate = libraryResource('podTemplate.yaml')
-    echo "Contents of podTemplate.yaml: ${podTemplate}"
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
     def requirementsTxt = libraryResource "requirements.txt"
 
@@ -13,12 +12,9 @@ def call(){
             }
         }
         environment {
-            NAME = "employeemanagement"
-            // VERSION = "${env.GIT_COMMIT}"
+            NAME = "${env.NAME}"
             VERSION = "${env.BUILD_ID}"
             IMAGE_REPO = "sarthaksatish"
-            NAMESPACE = "jenkins"
-            HELM_CHART_DIRECTORY = "helm-templates/"
             GITHUB_TOKEN = credentials('githubpat')
         }
         stages {
@@ -44,26 +40,12 @@ def call(){
                     script {
                         container('kaniko') {
                             sh '''
-                /kaniko/executor --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
-                '''
+                            /kaniko/executor --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
+                            '''
                         }
                     }
                 }
             }
-
-    
-            // stage('helm install') {
-            //   steps {
-            //         script{
-            //             container('helm'){
-            //             //   sh "helm list -n ${NAMESPACE}"
-            //             sh "helm lint ./${HELM_CHART_DIRECTORY}"
-            //             sh "helm upgrade --set image.tag=${VERSION} ${NAME} ./${HELM_CHART_DIRECTORY} -n ${NAMESPACE} --install"
-            //             sh "helm list"
-            //             }
-            //         }
-            //     }
-            //   }
             
             stage('Clone/Pull Repo') {
                 steps {
@@ -80,6 +62,7 @@ def call(){
                     }
                 }
             }
+
             stage('Commit & Push') {
                 steps {
                     script {
@@ -115,7 +98,7 @@ def call(){
                         container(name: 'python') {
                             sh "printenv"
                             sh "pip3 install -r requirements.txt"
-                            sh "python3 createprandaddlabels.py"
+                            sh "python3 CreatePrAndAddLabel.py"
                         }
                     }
                 }
