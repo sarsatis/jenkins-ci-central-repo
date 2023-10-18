@@ -20,7 +20,8 @@ def call(){
         }
         stages {
             stage('Unit Tests') {
-                    steps {
+                steps {
+                    sh "printenv"
                     echo 'Implement unit tests if applicable.'
                     echo 'This stage is a sample placeholder'
                 }
@@ -99,7 +100,6 @@ def call(){
                         writeFile file: "requirements.txt", text: requirementsTxt
                         container(name: 'python') {
                             sh '''
-                                printenv
                                 pip3 install -r requirements.txt
                                 python3 CreatePrAndAddLabel.py
                             '''
