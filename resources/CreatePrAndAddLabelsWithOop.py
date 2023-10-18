@@ -11,12 +11,12 @@ class CreatePRAndAddLabel:
 
     API_TOKEN = os.getenv('GITHUB_TOKEN_PSW')
     app_name = os.getenv('NAME')
-    branch_name = os.getenv('GIT_BRANCH')
+    # branch_name = os.getenv('GIT_BRANCH')
     image_tag = os.getenv('VERSION')    
 
     # API_TOKEN=""
     # app_name="priyankapractice"
-    # branch_name="JIRA-1236"
+    branch_name="JIRA-1236"
     # buildahImageTag="ocp-29"
 
     authorization = f'token {API_TOKEN}'
