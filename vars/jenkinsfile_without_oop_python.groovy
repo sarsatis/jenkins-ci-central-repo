@@ -4,6 +4,7 @@ def call(){
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
     def requirementsTxt = libraryResource "requirements.txt"
     def dockerfile = libraryResource "Dockerfile"
+    def jobNameParts = env.JOB_NAME.split('/')
 
     pipeline {
         agent {
@@ -13,7 +14,7 @@ def call(){
             }
         }
         environment {
-            NAME = "${env.NAME}"
+            NAME = "${jobNameParts[0]}"
             VERSION = "${env.GIT_COMMIT}-${env.BUILD_ID}"
             IMAGE_REPO = "sarthaksatish"
             GITHUB_TOKEN = credentials('githubpat')
