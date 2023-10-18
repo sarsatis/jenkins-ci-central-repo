@@ -1,7 +1,4 @@
-import requests
-import json
 import os
-import yaml
 from github import Github
 from github.GithubException import UnknownObjectException, GithubException
 import urllib3
