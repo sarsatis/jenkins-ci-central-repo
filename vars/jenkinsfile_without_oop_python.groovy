@@ -1,6 +1,7 @@
 def call(){
 
     def podTemplate = libraryResource('podTemplate.yaml')
+    echo "Contents of podTemplate.yaml: ${podTemplate}"
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
     def requirementsTxt = libraryResource "requirements.txt"
 
