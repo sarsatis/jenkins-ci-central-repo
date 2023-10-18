@@ -46,7 +46,7 @@ class CreatePRAndAddLabel:
 
         file_content, pr_created, file_content_decoded = self.check_if_pr_exists_and_fetch_file_content(repo,self.file_path)
 
-        new_file_content = getattr(self, "update_image_tag")(file_content=file_content_decoded, variable_key = "imageTag")
+        new_file_content = getattr(self, "update_image_tag")(file_content=file_content_decoded, variable_key = "tag")
         print(f"print new image value \n {new_file_content}")
 
         self.check_if_branch_exists(repo)
