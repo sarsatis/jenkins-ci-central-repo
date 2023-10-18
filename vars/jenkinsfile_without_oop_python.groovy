@@ -2,7 +2,7 @@ def call(){
 
     def podTemplate = libraryResource "podTemplate.yaml"
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
-    def requirementsTxt = libraryResource "requirements.py"
+    def requirementsTxt = libraryResource "requirements.txt"
 
     pipeline {
         agent {
