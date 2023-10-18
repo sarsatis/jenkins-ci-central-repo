@@ -1,6 +1,8 @@
 def call(){
 
-    def podTemplate = "podTemplate.yaml"
+    def podTemplate = libraryResource "podTemplate.yaml"
+    def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
+    def requirementsTxt = libraryResource "requirements.py"
 
     pipeline {
         agent {
@@ -105,22 +107,17 @@ def call(){
             }
 
             stage('Raise PR') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'githubpat',
-                        usernameVariable: 'username',
-                        passwordVariable: 'password')]){
-                        encodedPassword = URLEncoder.encode("$password",'UTF-8')
-                        echo 'In Pr'
+                steps {
+                    script {
+                        writeFile file: "CreatePrAndAddLabel.py", text: createPrAndAddLabelsScript
+                        writeFile file: "requirements.txt", text: requirementsTxt
                         container(name: 'python') {
-                        sh "printenv"
-                        sh "pip3 install -r requirements.txt"
-                        sh "python3 createprandaddlabels.py"
+                            sh "printenv"
+                            sh "pip3 install -r requirements.txt"
+                            sh "python3 createprandaddlabels.py"
                         }
-                        }
-                    // sh "bash pr.sh"
+                    }
                 }
-            }
             }
         }
     }
