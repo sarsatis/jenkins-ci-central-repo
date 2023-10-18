@@ -3,6 +3,7 @@ def call(){
     def podTemplate = libraryResource('podTemplate.yaml')
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
     def requirementsTxt = libraryResource "requirements.txt"
+    def dockerfile = libraryResource "Dockerfile"
 
     pipeline {
         agent {
@@ -38,6 +39,7 @@ def call(){
             stage('Build Image') {
                 steps {
                     script {
+                        writeFile file: "Dockerfile", text: dockerfile
                         container('kaniko') {
                             sh '''
                             /kaniko/executor --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
@@ -96,9 +98,11 @@ def call(){
                         writeFile file: "CreatePrAndAddLabel.py", text: createPrAndAddLabelsScript
                         writeFile file: "requirements.txt", text: requirementsTxt
                         container(name: 'python') {
-                            sh "printenv"
-                            sh "pip3 install -r requirements.txt"
-                            sh "python3 CreatePrAndAddLabel.py"
+                            sh '''
+                                printenv
+                                pip3 install -r requirements.txt
+                                python3 CreatePrAndAddLabel.py
+                            '''
                         }
                     }
                 }
