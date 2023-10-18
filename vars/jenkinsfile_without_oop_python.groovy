@@ -42,7 +42,7 @@ def call(){
                         writeFile file: "Dockerfile", text: dockerfile
                         container('kaniko') {
                             sh '''
-                            /kaniko/executor --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
+                            /kaniko/executor --build-arg NAME=${env.NAME} --context `pwd` --destination ${IMAGE_REPO}/${NAME}:${VERSION}
                             '''
                         }
                     }
