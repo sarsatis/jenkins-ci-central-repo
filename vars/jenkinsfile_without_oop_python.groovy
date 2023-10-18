@@ -1,6 +1,8 @@
 def call(){
 
-    def podTemplate = "resources/podTemplate.yaml"
+    @Library('my-library') _
+
+    def podTemplate = myLibrary('resources/pod-template.yaml')
     def createPrAndAddLabelsScript = libraryResource "CreatePrAndAddLabels.py"
     def requirementsTxt = libraryResource "requirements.txt"
 
@@ -8,7 +10,7 @@ def call(){
         agent {
             kubernetes {
                 inheritFrom 'jenkins-${UUID.randomUUID().toString()}'
-                yamlFile = readFile('resources/pod-template.yaml')
+                yamlFile = podTemplate
             }
         }
         environment {
