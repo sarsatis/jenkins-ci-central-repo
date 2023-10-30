@@ -10,7 +10,7 @@ def call(){
             }
         }
         environment {
-            NAME = "${jobNameParts[0]}"
+            NAME = "rtl"
             VERSION = "${env.GIT_COMMIT}-${env.BUILD_ID}"
             IMAGE_REPO = "sarthaksatish"
             GITHUB_TOKEN = credentials('githubpat')
