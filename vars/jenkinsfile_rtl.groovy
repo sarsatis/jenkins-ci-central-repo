@@ -1,12 +1,12 @@
 def call(){
-    def podTemplate = "podTemplate.yaml"
+    def podTemplate = libraryResource('podTemplate.yaml')
     def prScript = libraryResource "pr.sh"
 
     pipeline {
         agent {
             kubernetes {
                 label "jenkins-${UUID.randomUUID().toString()}"
-                yamlFile "$podTemplate"
+                yaml "$podTemplate"
             }
         }
         environment {
