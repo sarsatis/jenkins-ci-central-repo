@@ -34,3 +34,37 @@ done
 #   OUTPUT_FILE="secret-${CERT_BASE_NAME}.yaml"
 #   kubectl apply -f "$OUTPUT_FILE"
 # done
+----
+
+
+{{- range $cert := ["cert1", "cert2", "cert3", "cert4", "cert5", "cert6", "cert7", "cert8", "cert9", "cert10"] }}
+{{- with secret (printf "pki_int/issue/my-role" $cert) "common_name={{$cert}}.example.com" "ttl=720h" }}
+{{- $certData := .Data }}
+{{- $certName := $cert }}
+{{- $certFile := (printf "/tmp/%s.pem" $certName) }}
+{{- $keyFile := (printf "/tmp/%s-key.pem" $certName) }}
+{{- $caFile := (printf "/tmp/%s-ca.pem" $certName) }}
+{{- $p12File := (printf "/tmp/%s.p12" $certName) }}
+{{- $p12Password := "yourpassword" }}
+
+# Write the certificate, key, and CA to temporary files
+{{- $certData.certificate | file $certFile }}
+{{- $certData.private_key | file $keyFile }}
+{{- $certData.issuing_ca | file $caFile }}
+
+# Combine them into a .p12 file using openssl
+{{- exec "openssl" "pkcs12" "-export" "-out" $p12File "-inkey" $keyFile "-in" $certFile "-certfile" $caFile "-password" (print "pass:" $p12Password) }}
+
+# Base64-encode the .p12 file
+{{- $encodedP12 := fileContent | base64Encode (cat $p12File) }}
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-tls-secret-{{ $certName }}
+  namespace: default
+data:
+  cert.p12: {{ $encodedP12 }}
+---
+{{- end }}
+{{- end }}
