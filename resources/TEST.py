@@ -1,70 +1,92 @@
-#!/bin/bash
+Yes, you can definitely add a spinner to your Flask application to indicate to users that a request is being processed. Here’s how you can achieve that:
 
-# Define variables
-CERT_FILES=("path/to/cert1.p12" "path/to/cert2.p12" "path/to/cert3.p12" "path/to/cert4.p12" "path/to/cert5.p12" "path/to/cert6.p12" "path/to/cert7.p12" "path/to/cert8.p12" "path/to/cert9.p12" "path/to/cert10.p12")
-SECRET_NAME_PREFIX="my-tls-secret"
-NAMESPACE="default"
+Create a Flask route for the spinner page:
+This page will display the spinner while waiting for the redirect to complete.
 
-# Loop over each certificate file
-for CERT_FILE_PATH in "${CERT_FILES[@]}"; do
-  if [[ ! -f "$CERT_FILE_PATH" ]]; then
-    echo "Certificate file not found at $CERT_FILE_PATH"
-    continue
-  fi
+Serve the spinner page with JavaScript to handle the redirect:
+Use JavaScript to initiate the redirect to the GitHub API after showing the spinner.
 
-  # Extract the base name of the certificate file for the secret name
-  CERT_BASE_NAME=$(basename "$CERT_FILE_PATH" .p12)
-  SECRET_NAME="${SECRET_NAME_PREFIX}-${CERT_BASE_NAME}"
+Modify your existing route to redirect to the spinner page:
+Pass the GitHub API URL to the spinner page, so it knows where to redirect.
 
-  # Base64-encode the certificate content
-  ENCODED_CERT=$(base64 -w 0 "$CERT_FILE_PATH")
+Here’s an example of how to implement this:
 
-  # Construct the secret YAML in one line
-  SECRET_YAML=$(echo -n "apiVersion: v1,kind: Secret,metadata: {name: $SECRET_NAME, namespace: $NAMESPACE},data: {cert.p12: $ENCODED_CERT}")
+1. Flask Route for the Spinner Page
+Create a new route in your Flask app that renders a template for the spinner:
 
-  # Output the one-line YAML to a file
-  OUTPUT_FILE="secret-${CERT_BASE_NAME}.yaml"
-  echo "$SECRET_YAML" > "$OUTPUT_FILE"
-  echo "One-line secret YAML has been written to $OUTPUT_FILE"
-done
+python
+Copy code
+from flask import Flask, render_template, request, redirect, url_for
 
-# Optionally, apply all secrets to the cluster
-# for CERT_FILE_PATH in "${CERT_FILES[@]}"; do
-#   CERT_BASE_NAME=$(basename "$CERT_FILE_PATH" .p12)
-#   OUTPUT_FILE="secret-${CERT_BASE_NAME}.yaml"
-#   kubectl apply -f "$OUTPUT_FILE"
-# done
-----
+app = Flask(__name__)
 
+@app.route('/spinner')
+def spinner():
+    target_url = request.args.get('url')
+    return render_template('spinner.html', target_url=target_url)
 
-{{- range $cert := ["cert1", "cert2", "cert3", "cert4", "cert5", "cert6", "cert7", "cert8", "cert9", "cert10"] }}
-{{- with secret (printf "pki_int/issue/my-role" $cert) "common_name={{$cert}}.example.com" "ttl=720h" }}
-{{- $certData := .Data }}
-{{- $certName := $cert }}
-{{- $certFile := (printf "/tmp/%s.pem" $certName) }}
-{{- $keyFile := (printf "/tmp/%s-key.pem" $certName) }}
-{{- $caFile := (printf "/tmp/%s-ca.pem" $certName) }}
-{{- $p12File := (printf "/tmp/%s.p12" $certName) }}
-{{- $p12Password := "yourpassword" }}
+@app.route('/redirect_to_github')
+def redirect_to_github():
+    github_url = 'https://github.com/your-target-url'
+    # Redirect to spinner page with GitHub URL as a parameter
+    return redirect(url_for('spinner', url=github_url))
 
-# Write the certificate, key, and CA to temporary files
-{{- $certData.certificate | file $certFile }}
-{{- $certData.private_key | file $keyFile }}
-{{- $certData.issuing_ca | file $caFile }}
+if __name__ == '__main__':
+    app.run(debug=True)
+2. Spinner Template with JavaScript
+Create a spinner.html file in your templates directory:
 
-# Combine them into a .p12 file using openssl
-{{- exec "openssl" "pkcs12" "-export" "-out" $p12File "-inkey" $keyFile "-in" $certFile "-certfile" $caFile "-password" (print "pass:" $p12Password) }}
+html
+Copy code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        /* Spinner CSS */
+        .spinner {
+            margin: 100px auto;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+        }
 
-# Base64-encode the .p12 file
-{{- $encodedP12 := fileContent | base64Encode (cat $p12File) }}
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        // JavaScript to handle the redirect
+        window.onload = function() {
+            var targetUrl = "{{ target_url }}";
+            setTimeout(function() {
+                window.location.href = targetUrl;
+            }, 2000);  // Wait 2 seconds before redirecting
+        };
+    </script>
+</head>
+<body>
+    <div class="spinner"></div>
+    <p>Redirecting, please wait...</p>
+</body>
+</html>
+3. Modify Your Existing Route
+Ensure your existing route that handles the redirection now redirects to the /spinner route instead:
 
-apiVersion: v1
-kind: Secret
-metadata:
-  name: my-tls-secret-{{ $certName }}
-  namespace: default
-data:
-  cert.p12: {{ $encodedP12 }}
----
-{{- end }}
-{{- end }}
+python
+Copy code
+@app.route('/redirect_to_github')
+def redirect_to_github():
+    github_url = 'https://github.com/your-target-url'
+    # Redirect to spinner page with GitHub URL as a parameter
+    return redirect(url_for('spinner', url=github_url))
+Explanation
+Flask Route /spinner: This route receives the target URL as a query parameter and renders the spinner.html template, passing the URL to the template.
+Spinner Template: Displays a CSS spinner and uses JavaScript to redirect to the target URL after a short delay.
+Original Route: When a user accesses the /redirect_to_github route, they are redirected to the /spinner route with the GitHub URL as a parameter.
+This approach ensures that users see a spinner while the application processes the request and redirects to the GitHub URL. You can adjust the delay in the JavaScript setTimeout function to match your needs.
